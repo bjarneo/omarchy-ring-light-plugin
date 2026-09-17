@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "local.ring-light",
+  "name": "Ring Light",
+  "version": "1.2.0",
+  "description": "A white screen border that lights your face during video calls.",
+  "kinds": ["bar-widget", "service"],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml",
+    "service": "Service.qml"
+  },
+  "barWidget": {
+    "displayName": "Ring Light",
+    "description": "Toggle the white screen border for video calls.",
+    "category": "Display",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "borderWidth": 64,
+      "brightness": 100,
+      "screen": ""
+    },
+    "schema": [
+      {
+        "key": "borderWidth",
+        "type": "integer",
+        "label": "Border width in logical pixels",
+        "min": 16,
+        "max": 200,
+        "step": 8,
+        "defaultValue": 64
+      },
+      {
+        "key": "brightness",
+        "type": "integer",
+        "label": "Light level in percent",
+        "min": 10,
+        "max": 100,
+        "step": 10,
+        "defaultValue": 100
+      },
+      {
+        "key": "screen",
+        "type": "string",
+        "label": "Screen name for the light",
+        "defaultValue": "",
+        "description": "A connector name such as eDP-1. Blank lights every screen."
+      }
+    ]
+  }
+}
