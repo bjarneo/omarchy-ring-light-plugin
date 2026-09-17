@@ -8,7 +8,7 @@ import qs.Ui
 BarWidget {
   id: root
 
-  moduleName: "local.ring-light"
+  moduleName: "bjarneo.ring-light"
 
   readonly property var ringLightService: {
     if (!bar || !bar.shell || typeof bar.shell.serviceFor !== "function") return null

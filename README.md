@@ -18,13 +18,24 @@ Use the display brightness keys to adjust the screen backlight.
 
 ## Install
 
-Run this command from the project directory:
+Add the plugin from its repository:
+
+```bash
+omarchy plugin add https://github.com/bjarneo/omarchy-ring-light-plugin.git --enable
+```
+
+The add command clones the plugin, validates the manifest, and places the ring icon in the right bar section.
+Update it later with `omarchy plugin update bjarneo.ring-light`.
+
+### Install from a checkout
+
+For development, run this command from the project directory:
 
 ```bash
 bash install.sh
 ```
 
-The script installs the plugin at `~/.config/omarchy/plugins/local.ring-light/` and adds its ring icon before the display widget.
+The script installs the plugin at `~/.config/omarchy/plugins/bjarneo.ring-light/` and adds its ring icon before the display widget.
 The script saves config backups in `~/.config/omarchy/ring-light-backup.*/`.
 Run the script again after changes to the source files.
 
@@ -73,25 +84,25 @@ The border follows the slider while you drag, and the width is saved when you re
 To send the light to one screen from the terminal, run:
 
 ```bash
-omarchy bar set local.ring-light screen eDP-1
+omarchy bar set bjarneo.ring-light screen eDP-1
 ```
 
 To light every screen, run:
 
 ```bash
-omarchy bar set local.ring-light screen ""
+omarchy bar set bjarneo.ring-light screen ""
 ```
 
 To set a wider border from the terminal, run:
 
 ```bash
-omarchy bar set local.ring-light borderWidth 96 --json
+omarchy bar set bjarneo.ring-light borderWidth 96 --json
 ```
 
 To reduce the light level, run:
 
 ```bash
-omarchy bar set local.ring-light brightness 70 --json
+omarchy bar set bjarneo.ring-light brightness 70 --json
 ```
 
 These settings persist in `~/.config/omarchy/shell.json`.
@@ -103,7 +114,7 @@ The plugin limits the border width to one quarter of the shortest screen dimensi
 To remove the widget and its overlay from the shell, run:
 
 ```bash
-omarchy plugin disable local.ring-light
+omarchy plugin disable bjarneo.ring-light
 ```
 
 Remove the shortcut line from `~/.config/hypr/bindings.lua` if you no longer need it.

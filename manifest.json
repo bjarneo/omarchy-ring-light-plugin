@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "local.ring-light",
+  "id": "bjarneo.ring-light",
   "name": "Ring Light",
   "version": "1.2.0",
   "description": "A white screen border that lights your face during video calls.",
