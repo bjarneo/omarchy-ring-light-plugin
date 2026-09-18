@@ -1,10 +1,10 @@
 # Ring Light
 
-Use a bright white screen border to light your face during video calls.
+Use a bright screen border to light your face during video calls.
 This plugin runs inside the Omarchy Quickshell desktop.
 
 - The border covers all four edges on each connected display.
-- The white light is strongest at the outer edge and fades smoothly to transparent toward the center.
+- The light is strongest at the outer edge and fades smoothly to transparent toward the center.
 - The center stays transparent.
 - With more than one screen, the light shows on every screen or on one selected screen.
 - Mouse clicks and scroll events pass through the entire border.
@@ -12,8 +12,10 @@ This plugin runs inside the Omarchy Quickshell desktop.
 - The light starts off when the shell starts or the plugin reloads.
 
 The default border width is 64 logical pixels, including the full gradient.
-The default light level is 100 percent, which produces pure white.
-The light level controls the border color.
+The default color temperature is 6500 K, which is daylight white.
+The default light level is 100 percent.
+The temperature slider tints the border from candlelight at 1000 K to cool daylight at 12000 K.
+The light level scales that color.
 Use the display brightness keys to adjust the screen backlight.
 
 ## Demo
@@ -50,13 +52,15 @@ Run the script again after changes to the source files.
 
 Click the ring icon in the bar to turn on the light.
 Right-click the ring icon to open the settings card.
-The active border covers the bar, so use the keyboard shortcut or a terminal command to turn it off.
+While the light is on, the same icon floats on top of the border so you can turn it off or open settings without a shortcut.
+If the bar icon cannot be located, a toggle chip appears at the top of the lit screen.
 
-The card holds a screen select and a width slider.
+The card holds a screen select, a width slider, and a temperature slider.
 The screen select appears when the machine has more than one screen.
 Choose "All screens" to light every screen, or pick one screen to light only that screen.
-The slider sets the border width of the selected screen.
-Scroll on the ring icon to change the width by one step.
+The width slider sets the border width of the selected screen.
+The temperature slider sets the color of the light from 1000 K to 12000 K.
+Scroll on the ring icon, including the floating copy, to change the width by one step.
 
 To add the shortcut, put this line in `~/.config/hypr/bindings.lua`:
 
@@ -84,9 +88,13 @@ omarchy-shell ring-light status
 
 ## Adjust the border
 
-Drag the slider to set the border width from 16 to 200 logical pixels.
+Drag the width slider to set the border from 16 to 800 logical pixels.
 The slider shows the current width in pixels.
 The border follows the slider while you drag, and the width is saved when you release it.
+
+Drag the temperature slider to set the color from 1000 K to 12000 K in steps of 100 K.
+The slider shows the current temperature in kelvin.
+The border follows the slider while you drag, and the temperature is saved when you release it.
 
 To send the light to one screen from the terminal, run:
 
@@ -112,9 +120,16 @@ To reduce the light level, run:
 omarchy bar set bjarneo.ring-light brightness 70 --json
 ```
 
+To warm the light, run:
+
+```bash
+omarchy bar set bjarneo.ring-light temperature 3200 --json
+```
+
 These settings persist in `~/.config/omarchy/shell.json`.
 The light level accepts values from 10 to 100 percent.
-The plugin limits the border width to one quarter of the shortest screen dimension.
+The color temperature accepts values from 1000 K to 12000 K.
+The plugin limits the border width to half of the shortest screen dimension so the center stays open.
 
 ## Disable
 

@@ -18,11 +18,15 @@ BarWidget {
   readonly property bool lightActive: ringLightService ? ringLightService.active : false
   readonly property var configuredWidth: root.setting("borderWidth", 64)
   readonly property var configuredBrightness: root.setting("brightness", 100)
+  readonly property var configuredTemperature: root.setting("temperature", 6500)
   readonly property string configuredScreen: String(root.setting("screen", ""))
 
   readonly property int minimumWidth: 16
-  readonly property int maximumWidth: 200
-  readonly property int widthStep: 8
+  readonly property int maximumWidth: 800
+  readonly property int widthStep: 16
+  readonly property int minimumTemperature: 1000
+  readonly property int maximumTemperature: 12000
+  readonly property int temperatureStep: 100
 
   readonly property var screenOptions: {
     var options = [{ value: "", label: "All screens" }]
@@ -52,7 +56,51 @@ BarWidget {
     ? ringLightService.borderWidth
     : root.boundedWidth(configuredWidth)
 
+  readonly property int currentTemperature: ringLightService
+    ? ringLightService.temperature
+    : root.boundedTemperature(configuredTemperature)
+
+  readonly property var widgetWindow: root.QsWindow ? root.QsWindow.window : null
+  readonly property var widgetScreen: widgetWindow ? widgetWindow.screen : null
+
+  TransformWatcher {
+    id: iconWatcher
+    a: widgetWindow ? widgetWindow.contentItem : null
+    b: root
+  }
+
+  // Screen-relative slot of this bar icon. TransformWatcher keeps the
+  // overlay copy aligned when the bar moves or widgets reorder.
+  readonly property var iconScreenRect: {
+    iconWatcher.transform
+    if (!widgetWindow || !widgetWindow.contentItem || !widgetScreen) return null
+    if (root.width <= 0 || root.height <= 0) return null
+    var pos = root.mapToItem(widgetWindow.contentItem, 0, 0)
+    var x = pos.x
+    var y = pos.y
+    var barPos = root.bar ? root.bar.position : "top"
+    if (barPos === "bottom") y += widgetScreen.height - widgetWindow.height
+    else if (barPos === "right") x += widgetScreen.width - widgetWindow.width
+    return {
+      x: Math.round(x),
+      y: Math.round(y),
+      width: Math.round(root.width),
+      height: Math.round(root.height),
+      screen: String(widgetScreen.name)
+    }
+  }
+
   property bool popupOpen: false
+
+  function onThisScreen(screenName) {
+    return widgetScreen && String(widgetScreen.name) === String(screenName)
+  }
+
+  function reportIconAnchor() {
+    if (!ringLightService || typeof ringLightService.setIconAnchor !== "function") return
+    if (!iconScreenRect) return
+    ringLightService.setIconAnchor(iconScreenRect.screen, iconScreenRect)
+  }
 
   function boundedWidth(value) {
     var number = Number(value)
@@ -60,14 +108,24 @@ BarWidget {
     return Math.max(root.minimumWidth, Math.min(root.maximumWidth, Math.round(number)))
   }
 
+  function boundedTemperature(value) {
+    var number = Number(value)
+    if (!isFinite(number)) return 6500
+    return Math.max(root.minimumTemperature, Math.min(root.maximumTemperature, Math.round(number / root.temperatureStep) * root.temperatureStep))
+  }
+
   function pushSettings() {
     if (ringLightService)
-      ringLightService.applySettings(configuredWidth, configuredBrightness, configuredScreen)
+      ringLightService.applySettings(configuredWidth, configuredBrightness, configuredScreen, configuredTemperature)
   }
 
   // Live width with no persistence, so the border follows the slider.
   function previewWidth(pixels) {
     if (ringLightService) ringLightService.setBorderWidth(root.boundedWidth(pixels))
+  }
+
+  function previewTemperature(kelvin) {
+    if (ringLightService) ringLightService.setTemperature(root.boundedTemperature(kelvin))
   }
 
   // Apply the value locally first, then persist it through shell.json. The
@@ -87,6 +145,12 @@ BarWidget {
     root.commitSetting("borderWidth", width)
   }
 
+  function commitTemperature(kelvin) {
+    var temperature = root.boundedTemperature(kelvin)
+    root.previewTemperature(temperature)
+    root.commitSetting("temperature", temperature)
+  }
+
   function commitScreen(name) {
     var screenName = String(name || "")
     if (root.ringLightService) root.ringLightService.setTargetScreen(screenName)
@@ -103,11 +167,38 @@ BarWidget {
   // width row; this also covers opens that do not come from a click.
   onPopupOpenChanged: if (root.popupOpen) button.hideOwnTooltip()
 
-  Component.onCompleted: pushSettings()
-  onRingLightServiceChanged: pushSettings()
+  Component.onCompleted: {
+    pushSettings()
+    reportIconAnchor()
+  }
+  Component.onDestruction: {
+    if (ringLightService && iconScreenRect && typeof ringLightService.clearIconAnchor === "function")
+      ringLightService.clearIconAnchor(iconScreenRect.screen)
+  }
+  onRingLightServiceChanged: {
+    pushSettings()
+    reportIconAnchor()
+  }
+  onIconScreenRectChanged: reportIconAnchor()
   onConfiguredWidthChanged: pushSettings()
   onConfiguredBrightnessChanged: pushSettings()
+  onConfiguredTemperatureChanged: pushSettings()
   onConfiguredScreenChanged: pushSettings()
+
+  Connections {
+    target: ringLightService
+
+    function onSettingsRequested(screenName) {
+      if (!root.onThisScreen(screenName)) return
+      root.popupOpen = !root.popupOpen
+    }
+
+    function onWidthNudged(screenName, delta) {
+      if (delta === 0 || !root.onThisScreen(screenName)) return
+      root.previewWidth(root.currentWidth + (delta > 0 ? root.widthStep : -root.widthStep))
+      widthCommitTimer.restart()
+    }
+  }
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight
@@ -120,7 +211,7 @@ BarWidget {
     interactive: root.ringLightService !== null
     tooltipText: (root.lightActive ? "Ring light on" : "Ring light off")
       + (root.multipleScreens ? " · " + root.currentScreenLabel : "")
-      + " · " + root.currentWidth + " px · Right-click to adjust"
+      + " · " + root.currentWidth + " px · " + root.currentTemperature + " K · Right-click to adjust"
 
     iconComponent: Component {
       // The icon canvas stretches its loaded root item to the slot size, so
@@ -158,7 +249,66 @@ BarWidget {
     onTriggered: root.commitWidth(root.currentWidth)
   }
 
-  PopupCard {
+  component SliderRow: Column {
+    id: row
+
+    required property string label
+    required property string displayValue
+    required property real minimum
+    required property real maximum
+    required property real step
+    required property real value
+
+    signal preview(real value)
+    signal commit(real value)
+
+    width: parent.width
+    spacing: Style.space(8)
+
+    Row {
+      id: header
+      width: parent.width
+      spacing: Style.space(6)
+
+      Text {
+        id: headerLabel
+        textFormat: Text.PlainText
+        text: row.label
+        color: root.bar.foreground
+        font.family: root.bar.fontFamily
+        font.pixelSize: Style.font.body
+      }
+
+      Item {
+        width: Math.max(0, header.width - headerLabel.implicitWidth - headerValue.implicitWidth - header.spacing * 2)
+        height: 1
+      }
+
+      Text {
+        id: headerValue
+        textFormat: Text.PlainText
+        text: row.displayValue
+        color: root.bar.foreground
+        font.family: root.bar.fontFamily
+        font.pixelSize: Style.font.body
+        font.bold: true
+      }
+    }
+
+    PanelSlider {
+      width: parent.width
+      bar: root.bar
+      minimum: row.minimum
+      maximum: row.maximum
+      step: row.step
+      integer: true
+      value: row.value
+      onMoved: function(value) { row.preview(value) }
+      onReleased: function(value) { row.commit(value) }
+    }
+  }
+
+  KeyboardPanel {
     id: popup
     anchorItem: root
     bar: root.bar
@@ -184,46 +334,26 @@ BarWidget {
         onChanged: function(value) { root.commitScreen(value) }
       }
 
-      Row {
-        id: header
-        width: parent.width
-        spacing: Style.space(6)
-
-        Text {
-          id: headerLabel
-          textFormat: Text.PlainText
-          text: "Border width"
-          color: root.bar.foreground
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.body
-        }
-
-        Item {
-          width: Math.max(0, header.width - headerLabel.implicitWidth - headerValue.implicitWidth - header.spacing * 2)
-          height: 1
-        }
-
-        Text {
-          id: headerValue
-          textFormat: Text.PlainText
-          text: root.currentWidth + " px"
-          color: root.bar.foreground
-          font.family: root.bar.fontFamily
-          font.pixelSize: Style.font.body
-          font.bold: true
-        }
-      }
-
-      PanelSlider {
-        width: parent.width
-        bar: root.bar
+      SliderRow {
+        label: "Border width"
+        displayValue: root.currentWidth + " px"
         minimum: root.minimumWidth
         maximum: root.maximumWidth
         step: root.widthStep
-        integer: true
         value: root.currentWidth
-        onMoved: function(value) { root.previewWidth(value) }
-        onReleased: function(value) { root.commitWidth(value) }
+        onPreview: function(value) { root.previewWidth(value) }
+        onCommit: function(value) { root.commitWidth(value) }
+      }
+
+      SliderRow {
+        label: "Temperature"
+        displayValue: root.currentTemperature + " K"
+        minimum: root.minimumTemperature
+        maximum: root.maximumTemperature
+        step: root.temperatureStep
+        value: root.currentTemperature
+        onPreview: function(value) { root.previewTemperature(value) }
+        onCommit: function(value) { root.commitTemperature(value) }
       }
     }
   }

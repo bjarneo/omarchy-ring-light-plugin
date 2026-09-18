@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "bjarneo.ring-light",
   "name": "Ring Light",
-  "version": "1.2.0",
-  "description": "A white screen border that lights your face during video calls.",
+  "version": "1.5.0",
+  "description": "A screen border that lights your face during video calls.",
   "kinds": ["bar-widget", "service"],
   "entryPoints": {
     "barWidget": "BarWidget.qml",
@@ -11,13 +11,14 @@
   },
   "barWidget": {
     "displayName": "Ring Light",
-    "description": "Toggle the white screen border for video calls.",
+    "description": "Toggle the screen border for video calls.",
     "category": "Display",
     "allowMultiple": false,
     "defaultSection": "right",
     "defaults": {
       "borderWidth": 64,
       "brightness": 100,
+      "temperature": 6500,
       "screen": ""
     },
     "schema": [
@@ -26,8 +27,8 @@
         "type": "integer",
         "label": "Border width in logical pixels",
         "min": 16,
-        "max": 200,
-        "step": 8,
+        "max": 800,
+        "step": 16,
         "defaultValue": 64
       },
       {
@@ -38,6 +39,15 @@
         "max": 100,
         "step": 10,
         "defaultValue": 100
+      },
+      {
+        "key": "temperature",
+        "type": "integer",
+        "label": "Color temperature in kelvin",
+        "min": 1000,
+        "max": 12000,
+        "step": 100,
+        "defaultValue": 6500
       },
       {
         "key": "screen",
