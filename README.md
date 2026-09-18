@@ -16,6 +16,13 @@ The default light level is 100 percent, which produces pure white.
 The light level controls the border color.
 Use the display brightness keys to adjust the screen backlight.
 
+## Demo
+
+<video src="docs/ring-light.mp4" controls muted width="720"></video>
+
+The clip shows a video call before the light, the light on, and a width change from the settings card.
+If the player does not appear, [open the video directly](docs/ring-light.mp4).
+
 ## Install
 
 Add the plugin from its repository:
