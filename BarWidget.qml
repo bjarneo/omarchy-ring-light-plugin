@@ -22,8 +22,8 @@ BarWidget {
   readonly property string configuredScreen: String(root.setting("screen", ""))
 
   readonly property int minimumWidth: 16
-  readonly property int maximumWidth: 200
-  readonly property int widthStep: 8
+  readonly property int maximumWidth: 800
+  readonly property int widthStep: 16
   readonly property int minimumTemperature: 1000
   readonly property int maximumTemperature: 12000
   readonly property int temperatureStep: 100

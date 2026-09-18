@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "bjarneo.ring-light",
   "name": "Ring Light",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A screen border that lights your face during video calls.",
   "kinds": ["bar-widget", "service"],
   "entryPoints": {
@@ -27,8 +27,8 @@
         "type": "integer",
         "label": "Border width in logical pixels",
         "min": 16,
-        "max": 200,
-        "step": 8,
+        "max": 800,
+        "step": 16,
         "defaultValue": 64
       },
       {

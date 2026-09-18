@@ -18,7 +18,7 @@ PanelWindow {
   signal iconWheeled(int delta)
 
   // Keep the center open on small displays and after scale changes.
-  readonly property int fadeWidth: Math.min(borderWidth, Math.floor(Math.min(width, height) / 4))
+  readonly property int fadeWidth: Math.min(borderWidth, Math.floor(Math.min(width, height) / 2))
 
   // Tanner Helland's kelvin-to-RGB approximation, scaled by brightness.
   readonly property color lightColor: {

@@ -88,7 +88,7 @@ omarchy-shell ring-light status
 
 ## Adjust the border
 
-Drag the width slider to set the border from 16 to 200 logical pixels.
+Drag the width slider to set the border from 16 to 800 logical pixels.
 The slider shows the current width in pixels.
 The border follows the slider while you drag, and the width is saved when you release it.
 
@@ -129,7 +129,7 @@ omarchy bar set bjarneo.ring-light temperature 3200 --json
 These settings persist in `~/.config/omarchy/shell.json`.
 The light level accepts values from 10 to 100 percent.
 The color temperature accepts values from 1000 K to 12000 K.
-The plugin limits the border width to one quarter of the shortest screen dimension.
+The plugin limits the border width to half of the shortest screen dimension so the center stays open.
 
 ## Disable
 

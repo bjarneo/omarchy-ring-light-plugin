@@ -45,14 +45,14 @@ Item {
   }
 
   function applySettings(width, level, screen, kelvin) {
-    borderWidth = bounded(width, 16, 200, 64)
+    borderWidth = bounded(width, 16, 800, 64)
     brightness = bounded(level, 10, 100, 100)
     targetScreen = String(screen || "")
     temperature = boundedTemperature(kelvin)
   }
 
   function setBorderWidth(pixels) {
-    borderWidth = bounded(pixels, 16, 200, borderWidth)
+    borderWidth = bounded(pixels, 16, 800, borderWidth)
   }
 
   function setTemperature(kelvin) {
