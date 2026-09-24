@@ -19,7 +19,8 @@
       "borderWidth": 64,
       "brightness": 100,
       "temperature": 6500,
-      "screen": ""
+      "screen": "",
+      "showBar": false
     },
     "schema": [
       {
@@ -55,6 +56,13 @@
         "label": "Screen name for the light",
         "defaultValue": "",
         "description": "A connector name such as eDP-1. Blank lights every screen."
+      },
+      {
+        "key": "showBar",
+        "type": "boolean",
+        "label": "Show bar",
+        "defaultValue": false,
+        "description": "On keeps the light next to the bar. Off lets the light cover the bar."
       }
     ]
   }

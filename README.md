@@ -4,11 +4,14 @@ Use a bright screen border to light your face during video calls.
 This plugin runs inside the Omarchy Quickshell desktop.
 
 - The border covers all four edges on each connected display.
+- By default the border covers the Omarchy bar.
+  Turn on "Show bar" to start the border at the inner edge of the bar instead, whether the bar sits at the top, bottom, left, or right.
+  When the bar is hidden, the border reaches the screen edge again.
 - The light is strongest at the outer edge and fades smoothly to transparent toward the center.
 - The center stays transparent.
 - With more than one screen, the light shows on every screen or on one selected screen.
 - Mouse clicks and scroll events pass through the entire border.
-- The border stays above fullscreen apps and the bar.
+- The border stays above fullscreen apps.
 - The light starts off when the shell starts or the plugin reloads.
 
 The default border width is 64 logical pixels, including the full gradient.
@@ -52,14 +55,16 @@ Run the script again after changes to the source files.
 
 Click the ring icon in the bar to turn on the light.
 Right-click the ring icon to open the settings card.
-While the light is on, the same icon floats on top of the border so you can turn it off or open settings without a shortcut.
+While the light is on, a copy of the icon floats over the bar icon so you can turn the light off or open settings even when a fullscreen app covers the bar.
 If the bar icon cannot be located, a toggle chip appears at the top of the lit screen.
 
-The card holds a screen select, a width slider, and a temperature slider.
+The card holds a screen select, a width slider, a temperature slider, and a "Show bar" toggle.
 The screen select appears when the machine has more than one screen.
 Choose "All screens" to light every screen, or pick one screen to light only that screen.
 The width slider sets the border width of the selected screen.
 The temperature slider sets the color of the light from 1000 K to 12000 K.
+The "Show bar" toggle is off by default, so the light covers the bar.
+Turn it on to keep the light next to the bar.
 Scroll on the ring icon, including the floating copy, to change the width by one step.
 
 To add the shortcut, put this line in `~/.config/hypr/bindings.lua`:
@@ -124,6 +129,12 @@ To warm the light, run:
 
 ```bash
 omarchy bar set bjarneo.ring-light temperature 3200 --json
+```
+
+To keep the light next to the bar, run:
+
+```bash
+omarchy bar set bjarneo.ring-light showBar true --json
 ```
 
 These settings persist in `~/.config/omarchy/shell.json`.
