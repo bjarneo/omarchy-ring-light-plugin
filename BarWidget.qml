@@ -20,6 +20,7 @@ BarWidget {
   readonly property var configuredBrightness: root.setting("brightness", 100)
   readonly property var configuredTemperature: root.setting("temperature", 6500)
   readonly property string configuredScreen: String(root.setting("screen", ""))
+  readonly property var configuredShowBar: root.setting("showBar", false)
 
   readonly property int minimumWidth: 16
   readonly property int maximumWidth: 800
@@ -60,6 +61,10 @@ BarWidget {
     ? ringLightService.temperature
     : root.boundedTemperature(configuredTemperature)
 
+  readonly property bool currentShowBar: ringLightService
+    ? ringLightService.showBar
+    : root.enabled(configuredShowBar)
+
   readonly property var widgetWindow: root.QsWindow ? root.QsWindow.window : null
   readonly property var widgetScreen: widgetWindow ? widgetWindow.screen : null
 
@@ -91,6 +96,9 @@ BarWidget {
   }
 
   property bool popupOpen: false
+  // Trails popupOpen by one event loop turn on open, so the service maps the
+  // light windows first and the card stacks above them.
+  property bool cardOpen: false
 
   function onThisScreen(screenName) {
     return widgetScreen && String(widgetScreen.name) === String(screenName)
@@ -114,9 +122,13 @@ BarWidget {
     return Math.max(root.minimumTemperature, Math.min(root.maximumTemperature, Math.round(number / root.temperatureStep) * root.temperatureStep))
   }
 
+  function enabled(value) {
+    return value === true || String(value) === "true"
+  }
+
   function pushSettings() {
     if (ringLightService)
-      ringLightService.applySettings(configuredWidth, configuredBrightness, configuredScreen, configuredTemperature)
+      ringLightService.applySettings(configuredWidth, configuredBrightness, configuredScreen, configuredTemperature, configuredShowBar)
   }
 
   // Live width with no persistence, so the border follows the slider.
@@ -151,6 +163,12 @@ BarWidget {
     root.commitSetting("temperature", temperature)
   }
 
+  function commitShowBar(value) {
+    var shown = root.enabled(value)
+    if (root.ringLightService) root.ringLightService.setShowBar(shown)
+    root.commitSetting("showBar", shown)
+  }
+
   function commitScreen(name) {
     var screenName = String(name || "")
     if (root.ringLightService) root.ringLightService.setTargetScreen(screenName)
@@ -165,13 +183,28 @@ BarWidget {
 
   // An open card must not sit under the hover tooltip, which covers the
   // width row; this also covers opens that do not come from a click.
-  onPopupOpenChanged: if (root.popupOpen) button.hideOwnTooltip()
+  onPopupOpenChanged: {
+    if (root.popupOpen) {
+      button.hideOwnTooltip()
+      root.holdLight(true)
+      Qt.callLater(function() { root.cardOpen = root.popupOpen })
+    } else {
+      root.cardOpen = false
+      root.holdLight(false)
+    }
+  }
+
+  function holdLight(open) {
+    if (ringLightService && typeof ringLightService.setSettingsOpen === "function")
+      ringLightService.setSettingsOpen(open)
+  }
 
   Component.onCompleted: {
     pushSettings()
     reportIconAnchor()
   }
   Component.onDestruction: {
+    if (root.popupOpen) root.holdLight(false)
     if (ringLightService && iconScreenRect && typeof ringLightService.clearIconAnchor === "function")
       ringLightService.clearIconAnchor(iconScreenRect.screen)
   }
@@ -184,6 +217,7 @@ BarWidget {
   onConfiguredBrightnessChanged: pushSettings()
   onConfiguredTemperatureChanged: pushSettings()
   onConfiguredScreenChanged: pushSettings()
+  onConfiguredShowBarChanged: pushSettings()
 
   Connections {
     target: ringLightService
@@ -313,7 +347,7 @@ BarWidget {
     anchorItem: root
     bar: root.bar
     owner: root
-    open: root.popupOpen
+    open: root.cardOpen
     contentWidth: popup.fittedContentWidth(Style.space(240))
     contentHeight: popup.fittedContentHeight(column.implicitHeight)
 
@@ -354,6 +388,16 @@ BarWidget {
         value: root.currentTemperature
         onPreview: function(value) { root.previewTemperature(value) }
         onCommit: function(value) { root.commitTemperature(value) }
+      }
+
+      Toggle {
+        width: parent.width
+        label: "Show bar"
+        description: "Keep bar visible"
+        checked: root.currentShowBar
+        foreground: root.bar.foreground
+        fontFamily: root.bar.fontFamily
+        onClicked: root.commitShowBar(!root.currentShowBar)
       }
     }
   }

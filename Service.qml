@@ -12,8 +12,15 @@ Item {
   property int brightness: 100
   property int temperature: 6500
 
+  // True keeps the light out of the bar's zone. False lets it cover the bar.
+  property bool showBar: false
+
   // Persisted screen name. Empty means every screen.
   property string targetScreen: ""
+
+  // True while a settings card is open. The light windows stay mapped then,
+  // so turning the light on does not stack them above the card.
+  property bool settingsOpen: false
 
   // Bar widget slot per screen, used to float the toggle on the overlay.
   property var iconAnchors: ({})
@@ -44,11 +51,16 @@ Item {
     return Math.max(1000, Math.min(12000, Math.round(number / 100) * 100))
   }
 
-  function applySettings(width, level, screen, kelvin) {
+  function enabled(value) {
+    return value === true || String(value) === "true"
+  }
+
+  function applySettings(width, level, screen, kelvin, barShown) {
     borderWidth = bounded(width, 16, 800, 64)
     brightness = bounded(level, 10, 100, 100)
     targetScreen = String(screen || "")
     temperature = boundedTemperature(kelvin)
+    showBar = enabled(barShown)
   }
 
   function setBorderWidth(pixels) {
@@ -57,6 +69,14 @@ Item {
 
   function setTemperature(kelvin) {
     temperature = boundedTemperature(kelvin)
+  }
+
+  function setShowBar(value) {
+    showBar = enabled(value)
+  }
+
+  function setSettingsOpen(open) {
+    settingsOpen = !!open
   }
 
   function setTargetScreen(name) {
@@ -111,6 +131,8 @@ Item {
         borderWidth: root.borderWidth
         brightness: root.brightness
         temperature: root.temperature
+        showBar: root.showBar
+        held: root.settingsOpen
         iconAnchor: root.iconAnchors[String(modelData.name)] || null
         onIconPressed: function(button) { root.handleIconPressed(String(modelData.name), button) }
         onIconWheeled: function(delta) { root.handleIconWheeled(String(modelData.name), delta) }
@@ -139,6 +161,7 @@ Item {
         borderWidth: root.borderWidth,
         brightness: root.brightness,
         temperature: root.temperature,
+        showBar: root.showBar,
         screen: root.effectiveScreen === "" ? "all" : root.effectiveScreen,
         targetScreen: root.targetScreen,
         screens: Quickshell.screens.map(function(screen) { return screen.name })
